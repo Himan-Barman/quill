@@ -37,15 +37,9 @@ function AuthCallbackContent() {
 
     if (code) {
       // PKCE Flow: Explicitly exchange the code for a session
-      // This prevents relying solely on supabase-js background process which 
-      // sometimes races with Next.js router.
       supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
         if (exchangeError) {
           console.error('Code exchange error:', exchangeError);
-          // If the error is 'Auth session missing' or 'code challenge not found',
-          // it might mean supabase-js ALREADY exchanged it in the background.
-          // In that case, we don't immediately fail, we let AuthContext pick it up.
-          // But if after 3 seconds we still have no user, we fail.
           setTimeout(() => {
             supabase.auth.getSession().then(({ data: { session } }) => {
               if (session) {
@@ -60,12 +54,23 @@ function AuthCallbackContent() {
         }
       });
     } else if (accessToken) {
-      // Implicit Flow: supabase-js will detect this and set the session automatically.
-      // We just need to wait for AuthContext to pick it up.
-      // It will trigger the `if (user)` block above.
+      // Implicit Flow: Explicitly set the session
+      const refreshToken = hashParams.get('refresh_token');
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(({ error: sessionError }) => {
+            if (sessionError) {
+              console.error('Session set error:', sessionError);
+              router.push(`/login?error=${encodeURIComponent(sessionError.message)}`);
+            } else {
+              router.push('/');
+            }
+          });
+      } else {
+         router.push('/login?error=Missing+refresh+token');
+      }
     } else {
       // No code, no access token, no user? Invalid state.
-      // Wait a tiny bit just in case, then redirect to login.
       const timer = setTimeout(() => {
         router.push('/login');
       }, 2000);
