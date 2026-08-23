@@ -100,17 +100,19 @@ export default function LoginPage() {
             )}
           </button>
 
-          <button
-            onClick={handleDemoSignIn}
-            className="w-full flex items-center justify-center space-x-3 py-4 px-4 rounded-xl text-base font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all shadow-sm"
-          >
-            Demo Sign In (Debug)
-          </button>
+          {process.env.NODE_ENV === 'development' && (
+            <button
+              onClick={handleDemoSignIn}
+              className="w-full flex items-center justify-center space-x-3 py-4 px-4 rounded-xl text-base font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all shadow-sm"
+            >
+              Demo Sign In (Dev Only)
+            </button>
+          )}
         </div>
 
         <div className="mt-auto text-center px-6">
           <p className="text-xs text-muted/70 leading-relaxed">
-            By continuing, you agree to Lexora's Terms of Service and Privacy Policy.
+            By continuing, you agree to Quill's Terms of Service and Privacy Policy.
           </p>
         </div>
       </motion.div>
