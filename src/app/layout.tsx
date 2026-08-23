@@ -13,13 +13,16 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Quill | Master Every Word",
   description: "Premium AI-powered Vocabulary & Knowledge Management System.",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: '/favicon.ico' },
       { url: '/favicon.png', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/favicon.png', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
