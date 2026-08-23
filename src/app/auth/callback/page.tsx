@@ -1,38 +1,77 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 function AuthCallbackContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, isLoading } = useAuth();
-  
-  const code = searchParams.get('code');
-  const error = searchParams.get('error');
+  const { user } = useAuth();
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    // If we have a user, authentication was successful
+    // If we already have a user, we're good to go
     if (user) {
       router.push('/');
       return;
     }
+
+    // Since Next.js useSearchParams might miss the hash fragment,
+    // we inspect window.location directly on the client.
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const error = url.searchParams.get('error') || url.searchParams.get('error_description');
     
-    // If an error was returned from Supabase, go back to login
-    if (error) {
-      router.push(`/login?error=${encodeURIComponent(error)}`);
+    // Hash fragments (Implicit flow)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const hashError = hashParams.get('error') || hashParams.get('error_description');
+
+    const finalError = error || hashError;
+    if (finalError) {
+      setAuthError(finalError);
+      setTimeout(() => router.push(`/login?error=${encodeURIComponent(finalError)}`), 2000);
       return;
     }
 
-    // If context finished loading, but we have NO user and NO code in URL,
-    // then it's an invalid state, go to login.
-    // (If code IS present, we wait for Supabase's background exchange to finish 
-    // and populate `user`, which will trigger the user block above)
-    if (!isLoading && !code) {
-      router.push('/login');
+    if (code) {
+      // PKCE Flow: Explicitly exchange the code for a session
+      // This prevents relying solely on supabase-js background process which 
+      // sometimes races with Next.js router.
+      supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
+        if (exchangeError) {
+          console.error('Code exchange error:', exchangeError);
+          // If the error is 'Auth session missing' or 'code challenge not found',
+          // it might mean supabase-js ALREADY exchanged it in the background.
+          // In that case, we don't immediately fail, we let AuthContext pick it up.
+          // But if after 3 seconds we still have no user, we fail.
+          setTimeout(() => {
+            supabase.auth.getSession().then(({ data: { session } }) => {
+              if (session) {
+                router.push('/');
+              } else {
+                router.push(`/login?error=Authentication+failed`);
+              }
+            });
+          }, 3000);
+        } else {
+          router.push('/');
+        }
+      });
+    } else if (accessToken) {
+      // Implicit Flow: supabase-js will detect this and set the session automatically.
+      // We just need to wait for AuthContext to pick it up.
+      // It will trigger the `if (user)` block above.
+    } else {
+      // No code, no access token, no user? Invalid state.
+      // Wait a tiny bit just in case, then redirect to login.
+      const timer = setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [user, isLoading, code, error, router]);
+  }, [user, router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
