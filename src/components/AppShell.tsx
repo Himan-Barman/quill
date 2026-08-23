@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !user && pathname !== '/login') {
+    if (!isLoading && !user && pathname !== '/login' && pathname !== '/auth/callback') {
       router.push('/login');
     }
   }, [user, isLoading, pathname, router]);
@@ -25,8 +25,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If on login page, don't show sidebar
-  if (pathname === '/login') {
+  // If on login page or auth callback, don't show sidebar
+  if (pathname === '/login' || pathname === '/auth/callback') {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
 
