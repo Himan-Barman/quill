@@ -1,0 +1,28 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Quill - Master Every Word',
+    short_name: 'Quill',
+    description: 'Premium AI-powered Vocabulary & Knowledge Management System',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#0B0F19',
+    theme_color: '#0B0F19',
+    orientation: 'any',
+    icons: [
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+    ],
+  };
+}
