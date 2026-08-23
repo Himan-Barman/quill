@@ -13,7 +13,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Quill | Master Every Word",
   description: "Premium AI-powered Vocabulary & Knowledge Management System.",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: '/favicon.ico' },
@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     apple: [
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
+    shortcut: '/favicon.ico',
   },
 };
 
@@ -34,6 +35,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#0B0F19" />
+        <meta name="apple-mobile-web-app-title" content="Quill" />
+        <meta name="application-name" content="Quill" />
+      </head>
       <body className={`${outfit.variable} font-sans antialiased bg-background text-foreground`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
