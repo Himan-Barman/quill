@@ -3,11 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, FileText, GraduationCap, Settings, LogOut, ChevronRight, Download } from 'lucide-react';
+import { Home, BookOpen, FileText, GraduationCap, Settings, LogOut, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { LogoutConfirmModal } from '@/components/common/LogoutConfirmModal';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 const navItems = [
   { name: 'Home', href: '/', icon: Home },
@@ -20,7 +19,6 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { signOut, user } = useAuth();
-  const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -59,39 +57,28 @@ export function Sidebar() {
 
       {/* User Profile & Actions */}
       <div className="p-4 border-t border-border space-y-2">
-        {/* Install Desktop App Button */}
-        {!isInstalled && (
-          <button
-            onClick={installApp}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs font-semibold transition-all cursor-pointer group shadow-sm"
-          >
-            <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-            <span>Install Desktop App</span>
-          </button>
-        )}
-
-        <div className="flex items-center justify-between px-2 py-3 rounded-xl hover:bg-surface-active transition-colors cursor-pointer group">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B82F6] to-[#8B5CF6] p-[2px]">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center px-3 py-3 rounded-xl bg-surface-active/30 border border-border/50">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] shrink-0 mr-3">
               <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-semibold text-foreground">
                   {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground truncate w-24">
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium text-foreground truncate w-full">
                 {user?.email || 'Guest User'}
               </span>
-              <span className="text-xs text-muted">Pro Plan</span>
+              <span className="text-xs text-blue-400 font-medium">Pro Plan</span>
             </div>
           </div>
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="p-2 rounded-lg text-muted hover:text-[#F43F5E] hover:bg-[#F43F5E]/10 transition-colors cursor-pointer"
-            title="Sign out"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer group text-sm font-medium"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
