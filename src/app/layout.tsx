@@ -3,6 +3,8 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/contexts/ToastContext";
+import { ToastContainer } from "@/components/common/ToastContainer";
 import { AppShell } from "@/components/AppShell";
 
 const outfit = Outfit({
@@ -48,11 +50,14 @@ export default function RootLayout({
       </head>
       <body className={`${outfit.variable} font-sans antialiased bg-background text-foreground`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            <AppShell>
-              {children}
-            </AppShell>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <AppShell>
+                {children}
+              </AppShell>
+            </AuthProvider>
+            <ToastContainer />
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

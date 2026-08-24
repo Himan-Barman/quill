@@ -7,6 +7,7 @@ import { ChevronLeft, Save, Loader2, ChevronDown, Check } from 'lucide-react';
 import { useWordsData, WordData } from '@/hooks/useWordsData';
 import { parsePastedText, WordImportResult } from '@/lib/wordParser';
 import { useSettings } from '@/hooks/useSettings';
+import { useToast } from '@/contexts/ToastContext';
 
 const POS_OPTIONS = ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Idiom'];
 const DIFFICULTY_OPTIONS = ['Easy', 'Medium', 'Hard'];
@@ -116,10 +117,9 @@ function AddWordForm() {
   const editId = searchParams.get('edit');
   const { addWord, updateWord, words, isLoading: isWordsLoading } = useWordsData();
   const { dailyGoal } = useSettings();
+  const { success, error: toastError } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     word: '',
@@ -191,15 +191,12 @@ function AddWordForm() {
         setIsGlowing(true);
         setTimeout(() => setIsGlowing(false), 800);
 
-        setSuccessMsg('Vocabulary imported successfully!');
-        setTimeout(() => setSuccessMsg(null), 3000);
-        setError(null);
+        success('Vocabulary imported successfully!');
 
         await staggeredPopulate(result);
         return;
       } else {
-        setError('Unable to detect a structured vocabulary entry.');
-        setTimeout(() => setError(null), 3000);
+        toastError('Unable to detect a structured vocabulary entry.');
         // Clean the text to a single line if parsing failed but they pasted a block
         setFormData(prev => ({ ...prev, word: text.split('\n')[0].trim() }));
         return;
@@ -226,12 +223,11 @@ function AddWordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.word.trim() || !formData.meaning.trim()) {
-      setError('Word and Simple Meaning are required.');
+      toastError('Word and Simple Meaning are required.');
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     const payload: Partial<WordData> = {
       word: formData.word.trim(),
@@ -256,7 +252,7 @@ function AddWordForm() {
       if (result?.success) {
         router.push('/words');
       } else {
-        setError(result?.error || 'Failed to save word');
+        toastError(result?.error || 'Failed to save word');
       }
     } else {
       result = await addWord(payload);
@@ -276,13 +272,12 @@ function AddWordForm() {
         wordsAddedToday += 1;
 
         if (wordsAddedToday >= dailyGoal) {
-          setSuccessMsg(`Daily goal reached! (${dailyGoal} words)`);
+          success(`Daily goal reached! (${dailyGoal} words)`);
           setTimeout(() => {
             router.push('/words');
           }, 1500); // Briefly show message before navigating back
         } else {
-          setSuccessMsg(`Word saved! ${dailyGoal - wordsAddedToday} words left today.`);
-          setTimeout(() => setSuccessMsg(null), 3000);
+          success(`Word saved! ${dailyGoal - wordsAddedToday} words left today.`);
           
           // Clear fields to allow adding another word
           setFormData({
@@ -305,7 +300,7 @@ function AddWordForm() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       } else {
-        setError(result?.error || 'Failed to save word');
+        toastError(result?.error || 'Failed to save word');
       }
     }
   };
@@ -345,20 +340,7 @@ function AddWordForm() {
         </button>
       </div>
 
-      <AnimatePresence>
-        {error && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mx-4 md:mx-0 mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-            <p className="text-red-400 font-medium">{error}</p>
-          </motion.div>
-        )}
-        {successMsg && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mx-4 md:mx-0 mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-            <p className="text-green-400 font-medium">{successMsg}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <form onSubmit={handleSubmit} className="px-4 md:px-0 flex-1">
+      <form onSubmit={handleSubmit} className="px-4 md:px-0 flex-1 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* Left Column */}

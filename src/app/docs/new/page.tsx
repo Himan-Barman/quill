@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Save, Loader2, Plus, Trash2, Quote, GitFork, FileText } from 'lucide-react';
 import { useDocsData, type DocType } from '@/hooks/useDocsData';
 import { DocsToolbar } from '@/components/docs/DocsToolbar';
+import { useToast } from '@/contexts/ToastContext';
 
 function NewDocContent() {
   const router = useRouter();
@@ -15,7 +16,7 @@ function NewDocContent() {
   const [docType] = useState<DocType>(initialType);
   const [title, setTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, success } = useToast();
 
   // Snippet content
   const [snippetContent, setSnippetContent] = useState('');
@@ -49,7 +50,6 @@ function NewDocContent() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     let finalTitle = title.trim();
     let finalMarkdown = '';
@@ -57,7 +57,7 @@ function NewDocContent() {
 
     if (docType === 'snippet') {
       if (!snippetContent.trim()) {
-        setError('Please enter your snippet or quotation.');
+        error('Please enter your snippet or quotation.');
         return;
       }
       if (!finalTitle) {
@@ -67,11 +67,11 @@ function NewDocContent() {
     } else if (docType === 'thread') {
       const validThoughts = threadThoughts.map(t => t.trim()).filter(Boolean);
       if (!finalTitle) {
-        setError('Please enter a thread title.');
+        error('Please enter a thread title.');
         return;
       }
       if (validThoughts.length === 0) {
-        setError('Please write at least one thought in your thread.');
+        error('Please write at least one thought in your thread.');
         return;
       }
       finalMarkdown = validThoughts.join('\n\n---\n\n');
@@ -82,11 +82,11 @@ function NewDocContent() {
       const text = editorElement ? editorElement.innerText : '';
 
       if (!finalTitle) {
-        setError('Please enter a document title.');
+        error('Please enter a document title.');
         return;
       }
       if (!text.trim()) {
-        setError('Please write some content in your document.');
+        error('Please write some content in your document.');
         return;
       }
       finalMarkdown = html;
@@ -103,9 +103,10 @@ function NewDocContent() {
     setIsSaving(false);
 
     if (result.success && result.data) {
+      success('Document created successfully!');
       router.push(`/docs/${result.data.id}`);
     } else {
-      setError(result.error || 'Failed to create document');
+      error(result.error || 'Failed to create document');
     }
   };
 
@@ -153,13 +154,6 @@ function NewDocContent() {
           <span>Save</span>
         </button>
       </div>
-
-      {/* Error Banner */}
-      {error && (
-        <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl">
-          <p className="text-rose-400 font-medium text-sm">{error}</p>
-        </div>
-      )}
 
       {/* Editor Content Area */}
       <div className="flex-1 overflow-y-auto min-h-0 pt-2">
