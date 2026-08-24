@@ -18,7 +18,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -55,32 +55,15 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* User Profile & Actions */}
-      <div className="p-4 border-t border-border space-y-2">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center px-3 py-3 rounded-xl bg-surface-active/30 border border-border/50">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] shrink-0 mr-3">
-              <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                <span className="text-sm font-semibold text-foreground">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-foreground truncate w-full">
-                {user?.email || 'Guest User'}
-              </span>
-              <span className="text-xs text-blue-400 font-medium">Pro Plan</span>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer group text-sm font-medium"
-          >
-            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Sign Out</span>
-          </button>
-        </div>
+      {/* User Actions */}
+      <div className="p-4 border-t border-border">
+        <button
+          onClick={() => setShowLogoutModal(true)}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-rose-500 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer group text-sm font-medium shadow-sm"
+        >
+          <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <span>Sign Out</span>
+        </button>
       </div>
 
       <LogoutConfirmModal
