@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Save, Loader2, ChevronDown, Check } from 'lucide-react';
 import { useWordsData, WordData } from '@/hooks/useWordsData';
 import { parsePastedText, WordImportResult } from '@/lib/wordParser';
+import { useSettings } from '@/hooks/useSettings';
 
 const POS_OPTIONS = ['Noun', 'Verb', 'Adjective', 'Adverb', 'Pronoun', 'Preposition', 'Conjunction', 'Interjection', 'Idiom'];
 const DIFFICULTY_OPTIONS = ['Easy', 'Medium', 'Hard'];
@@ -114,6 +115,7 @@ function AddWordForm() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
   const { addWord, updateWord, words, isLoading: isWordsLoading } = useWordsData();
+  const { dailyGoal } = useSettings();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -250,16 +252,61 @@ function AddWordForm() {
     let result;
     if (editId) {
       result = await updateWord(editId, payload);
+      setIsLoading(false);
+      if (result?.success) {
+        router.push('/words');
+      } else {
+        setError(result?.error || 'Failed to save word');
+      }
     } else {
       result = await addWord(payload);
-    }
+      setIsLoading(false);
+      
+      if (result?.success) {
+        // Calculate daily goal logic
+        const now = new Date();
+        let wordsAddedToday = words.filter(w => {
+          const createdAt = new Date(w.created_at);
+          return createdAt.getFullYear() === now.getFullYear() &&
+                 createdAt.getMonth() === now.getMonth() &&
+                 createdAt.getDate() === now.getDate();
+        }).length;
+        
+        // Include the newly added word
+        wordsAddedToday += 1;
 
-    setIsLoading(false);
-
-    if (result?.success) {
-      router.push('/words');
-    } else {
-      setError(result?.error || 'Failed to save word');
+        if (wordsAddedToday >= dailyGoal) {
+          setSuccessMsg(`Daily goal reached! (${dailyGoal} words)`);
+          setTimeout(() => {
+            router.push('/words');
+          }, 1500); // Briefly show message before navigating back
+        } else {
+          setSuccessMsg(`Word saved! ${dailyGoal - wordsAddedToday} words left today.`);
+          setTimeout(() => setSuccessMsg(null), 3000);
+          
+          // Clear fields to allow adding another word
+          setFormData({
+            word: '',
+            ipa: '',
+            part_of_speech: 'Noun',
+            difficulty: 'Medium',
+            meaning: '',
+            advanced_meaning: '',
+            synonyms: '',
+            antonyms: '',
+            examples: '',
+            common_collocations: '',
+            memory_trick: '',
+            common_mistakes: '',
+            personal_notes: ''
+          });
+          
+          // Scroll to top
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else {
+        setError(result?.error || 'Failed to save word');
+      }
     }
   };
 

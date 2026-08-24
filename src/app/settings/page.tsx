@@ -12,6 +12,8 @@ import { LogoutConfirmModal } from '@/components/common/LogoutConfirmModal';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
+import { useSettings } from '@/hooks/useSettings';
+import { DailyGoalModal } from '@/components/settings/DailyGoalModal';
 import {
   UserCircle,
   Palette,
@@ -39,6 +41,9 @@ export default function SettingsPage() {
   const [isFocused, setIsFocused] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  
+  const [isDailyGoalModalOpen, setIsDailyGoalModalOpen] = useState(false);
+  const { dailyGoal, updateDailyGoal } = useSettings();
 
   // Mocked states for settings
   const [materialYou, setMaterialYou] = useState(false);
@@ -154,10 +159,10 @@ export default function SettingsPage() {
             {matches('Daily Goal') && (
               <SettingsTile
                 title="Daily Goal"
-                subtitle="10 Words / Day"
+                subtitle={`${dailyGoal} Words / Day`}
                 icon={Flag}
                 iconColor="text-orange-500"
-                onClick={() => alert('Daily goal modal would go here.')}
+                onClick={() => setIsDailyGoalModalOpen(true)}
               />
             )}
             {(matches('Revision Algorithm') || matches('Spaced Repetition')) && (
@@ -270,6 +275,13 @@ export default function SettingsPage() {
           </SettingsGroup>
         )}
       </div>
+
+      <DailyGoalModal
+        isOpen={isDailyGoalModalOpen}
+        onClose={() => setIsDailyGoalModalOpen(false)}
+        currentGoal={dailyGoal}
+        onSave={updateDailyGoal}
+      />
 
       <ThemeModal
         isOpen={isThemeModalOpen}
